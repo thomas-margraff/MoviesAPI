@@ -20,14 +20,14 @@ namespace MoviesAPI.Controllers
 {
     [ApiController]
     [Route("api/people")]
+    [EnableCors(PolicyName = "AllowAPIRequestIO")]
     public class PeopleController : ControllerBase
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
         private readonly IFileStorageService fileStorageService;
         private readonly string containerName = "people";
-
-        [EnableCors(PolicyName = "AllowAPIRequestIO")]
+        
         public PeopleController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService)
         {
             this.context = context;
