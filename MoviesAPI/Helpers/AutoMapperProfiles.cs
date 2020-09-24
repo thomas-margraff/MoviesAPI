@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using MoviesAPI.DTOs;
 using MoviesAPI.Entities;
 using System;
@@ -33,6 +34,11 @@ namespace MoviesAPI.Helpers
                 .ForMember(x => x.Actors, options => options.MapFrom(MapMoviesActors));
             
             CreateMap<Movie, MoviePatchDTO>().ReverseMap();
+
+            CreateMap<IdentityUser, UserDTO>()
+                .ForMember(r => r.EmailAddress, options => options.MapFrom(r => r.Email))
+                .ForMember(r => r.UserId, options => options.MapFrom(r => r.Id));
+
         }
 
         private List<GenreDTO> MapMoviesGenres(Movie movie, MovieDetailsDTO movieDetailsDTO)

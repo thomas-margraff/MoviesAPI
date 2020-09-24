@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +27,7 @@ namespace MoviesAPI.Controllers
         private readonly IFileStorageService fileStorageService;
         private readonly string containerName = "people";
 
+        [EnableCors(PolicyName = "AllowAPIRequestIO")]
         public PeopleController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService)
         {
             this.context = context;
@@ -54,6 +58,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Post([FromForm]PersonCreationDTO personCreationDTO)
         {
             var person = mapper.Map<Person>(personCreationDTO);
@@ -78,6 +83,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Put(int id, [FromForm] PersonCreationDTO personCreationDTO)
         {
             var personDB = await context.People.FirstOrDefaultAsync(r => r.Id == id);
@@ -105,6 +111,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPatch("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<PersonPatchDTO> patchDocument)
         {
             if (patchDocument == null)
@@ -135,6 +142,8 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [DisableCors]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
             var exists = await context.People.AnyAsync(r => r.Id == id);

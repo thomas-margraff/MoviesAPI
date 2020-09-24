@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,8 @@ namespace MoviesAPI.Controllers
         //[ServiceFilter(typeof(MyActionFilter))]
         #endregion
         [HttpGet]   //  api/genres
+        // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [EnableCors(PolicyName = "AllowAPIRequestIO")]
         public async Task<ActionResult<List<GenreDTO>>> Get()
         {
             var genres = await context.Genres.AsNoTracking().ToListAsync();
@@ -47,6 +50,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpGet("{Id:int}", Name = "getGenre")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult<GenreDTO>> Get(int Id)
         {
             var genre = await context.Genres.FirstOrDefaultAsync(r => r.Id == Id);
@@ -67,6 +71,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Post([FromBody]GenreCreationDTO genreCreation)
         {
             var genre = mapper.Map<Genre>(genreCreation);
@@ -78,6 +83,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Put(int id, [FromBody] GenreCreationDTO genreCreation)
         {
             var genre = mapper.Map<Genre>(genreCreation);
@@ -89,6 +95,7 @@ namespace MoviesAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
             var exists = await context.Genres.AnyAsync(r => r.Id == id);
