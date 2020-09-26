@@ -20,7 +20,7 @@ namespace MoviesAPI.Controllers
 {
     [ApiController]
     [Route("api/accounts")]
-    public class AccountsController: ControllerBase
+    public class AccountsController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -42,7 +42,9 @@ namespace MoviesAPI.Controllers
             this.mapper = mapper;
         }
 
-        [HttpPost("Create")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(typeof(UserToken), 200)]
+        [HttpPost("Create", Name ="createUser")]
         public async Task<ActionResult<UserToken>> CreateUser([FromBody] UserInfo model)
         {
             var user = new IdentityUser { UserName = model.EmailAddress, Email = model.EmailAddress };
@@ -52,13 +54,13 @@ namespace MoviesAPI.Controllers
             {
                 return await BuildToken(model);
             }
-            else 
+            else
             {
                 return BadRequest(result.Errors);
             }
         }
 
-        [HttpPost("Login")]
+        [HttpPost("Login", Name = "Login")]
         public async Task<ActionResult<UserToken>> Login([FromBody] UserInfo model)
         {
             var result = await _signInManager.PasswordSignInAsync(model.EmailAddress, model.Password,
@@ -103,7 +105,7 @@ namespace MoviesAPI.Controllers
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var expiration = DateTime.UtcNow.AddMinutes(60);
+            var expiration = DateTime.UtcNow.AddYears(1);
 
             JwtSecurityToken token = new JwtSecurityToken(
                 issuer: null,

@@ -21,45 +21,45 @@ namespace MoviesAPI.Controllers
     [ApiController]
     [Route("api/people")]
     [EnableCors(PolicyName = "AllowAPIRequestIO")]
-    public class PeopleController : ControllerBase
+    public class PeopleController : CustomBaseController
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
         private readonly IFileStorageService fileStorageService;
         private readonly string containerName = "people";
-        
-        public PeopleController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService)
+
+        public PeopleController(ApplicationDbContext context,
+            IMapper mapper,
+            IFileStorageService fileStorageService)
+            : base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
             this.fileStorageService = fileStorageService;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "getPeople")]
         public async Task<ActionResult<List<PersonDTO>>> Get([FromQuery] PaginationDTO pagination)
         {
-            var queryable = context.People.AsQueryable();
-            await HttpContext.InsertPaginationParametersInResponse(queryable, pagination.RecordsPerPage);
+            return await Get<Person, PersonDTO>(pagination);
+            #region MyRegion
+            //var queryable = context.People.AsQueryable();
+            //await HttpContext.InsertPaginationParametersInResponse(queryable, pagination.RecordsPerPage);
 
-            var people = await queryable.Paginate(pagination).ToListAsync();
-            return mapper.Map<List<PersonDTO>>(people);
+            //var people = await queryable.Paginate(pagination).ToListAsync();
+            //return mapper.Map<List<PersonDTO>>(people); 
+            #endregion
         }
 
         [HttpGet("{id}", Name = "getPerson")]
         public async Task<ActionResult<PersonDTO>> Get(int id)
         {
-            var person = await context.People.FirstOrDefaultAsync(r => r.Id == id);
-            if (person == null)
-            {
-                return NotFound();
-            }
-
-            return mapper.Map<PersonDTO>(person);
+            return await Get<Person, PersonDTO>(id);
         }
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<ActionResult> Post([FromForm]PersonCreationDTO personCreationDTO)
+        public async Task<ActionResult> Post([FromForm] PersonCreationDTO personCreationDTO)
         {
             var person = mapper.Map<Person>(personCreationDTO);
 
@@ -71,7 +71,7 @@ namespace MoviesAPI.Controllers
                     var content = memoryStream.ToArray();
                     var extension = Path.GetExtension(personCreationDTO.Picture.FileName);
                     person.Picture =
-                        await fileStorageService.SaveFile(content, extension, containerName, 
+                        await fileStorageService.SaveFile(content, extension, containerName,
                                                           personCreationDTO.Picture.ContentType);
                 }
             }
@@ -114,31 +114,7 @@ namespace MoviesAPI.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<PersonPatchDTO> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            Person entityFromDB = await context.People.FirstOrDefaultAsync(r => r.Id == id);
-            if (entityFromDB == null)
-            {
-                return NotFound();
-            }
-
-            var entityDTO = mapper.Map<PersonPatchDTO>(entityFromDB);
-            patchDocument.ApplyTo(entityDTO, ModelState);
-
-            var isValid = TryValidateModel(entityDTO);
-            if (!isValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            mapper.Map(entityDTO, entityFromDB);
-
-            await context.SaveChangesAsync();
-
-            return NoContent();
+            return await Patch<Person, PersonPatchDTO>(id, patchDocument);
         }
 
         [HttpDelete("{id}")]
@@ -146,18 +122,7 @@ namespace MoviesAPI.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
-            var exists = await context.People.AnyAsync(r => r.Id == id);
-            if (!exists)
-            {
-                return NotFound();
-            }
-
-            context.Remove(new Person() { Id = id });
-            await context.SaveChangesAsync();
-
-            return NoContent();
+            return await Delete<Person>(id);
         }
-
-
     }
 }
