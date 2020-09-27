@@ -22,47 +22,27 @@ namespace MoviesAPI.Controllers
     // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class GenresController : CustomBaseController
     {
-        private readonly ILogger<GenresController> logger;
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
 
-        public GenresController(ILogger<GenresController> logger,
+        public GenresController(
             ApplicationDbContext context, IMapper mapper) 
             : base(context, mapper)
         {
-            this.logger = logger;
             this.context = context;
             this.mapper = mapper;
         }
 
         [HttpGet(Name = "getGenres")]   //  api/genres
         [EnableCors(PolicyName = "AllowAPIRequestIO")]
-        [ServiceFilter(typeof(GenreHATEOASAttribute))]
         public async Task<ActionResult<List<GenreDTO>>> Get()
         {
             return await Get<Genre, GenreDTO>();
-
-            #region not used
-            //var genres = await context.Genres.AsNoTracking().ToListAsync();
-            //var genresDTOs = mapper.Map<List<GenreDTO>>(genres);
-
-            //if (includeHATEOAS)
-            //{
-            //    var resourceCollection = new ResourceCollection<GenreDTO>(genresDTOs);
-            //    genresDTOs.ForEach(genre => generateLinks(genre));
-            //    resourceCollection.Links.Add(new Link(Url.Link("getGenres", new { }), rel: "self", method: "GET"));
-            //    resourceCollection.Links.Add(new Link(Url.Link("createGenre", new { }), rel: "create-genre", method: "POST"));
-            //    return Ok(resourceCollection);
-            //}
-
-            //return Ok(genresDTOs); 
-            #endregion
         }
 
         [HttpGet("{Id:int}", Name = "getGenre")]
         [ProducesResponseType(404)]
         [ProducesResponseType(typeof(GenreDTO), 200)]
-        [ServiceFilter(typeof(GenreHATEOASAttribute))]
         public async Task<ActionResult<GenreDTO>> Get(int Id)
         {
             return await Get<Genre, GenreDTO>(Id);

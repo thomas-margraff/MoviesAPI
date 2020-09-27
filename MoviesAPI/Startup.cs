@@ -57,10 +57,6 @@ namespace MoviesAPI
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddTransient<GenreHATEOASAttribute>();
-            services.AddTransient<LinksGenerator>();
-
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
