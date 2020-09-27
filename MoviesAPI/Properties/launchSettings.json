@@ -14,6 +14,7 @@
       "launchBrowser": true,
       "launchUrl": "api/genres",
       "environmentVariables": {
+        "VaultUri": "https://moviesapivaulttm.vault.azure.net/",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
